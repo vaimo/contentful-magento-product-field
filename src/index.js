@@ -3,6 +3,7 @@ import { setup, renderSkuPicker } from '@contentful/ecommerce-app-base';
 import { EntityList } from '@contentful/f36-components';
 import { render } from 'react-dom';
 import { useEffect, useState } from 'react';
+import { fetchProductsByQuery } from './api/fetchProductsByQuery';
 
 const DIALOG_ID = 'root';
 const PER_PAGE = 20;
@@ -73,7 +74,7 @@ setup({
 
 async function fetchProductPreviews(skus, parameters) {
   console.log('<--- preview endpoint --->');
-  //console.log(skus);
+  console.log(skus);
   const apiKey = parameters.apiKey;
   const projectId = parameters.projectId;
 
@@ -95,8 +96,10 @@ async function renderDialog(sdk) {
   console.log('<-- render dialog section --->')
 
   const container = document.getElementById(DIALOG_ID);
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
+  if (container) {
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+  }
 
   renderSkuPicker(DIALOG_ID, {
     sdk,
