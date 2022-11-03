@@ -1,18 +1,20 @@
 import { transformParam } from './paramTransformer';
 
-export const fetchProductsByQuery = async function (path, param, accessToken) {
+export const fetchProductsByQuery = async function (path, param, accessToken, offset) {
     const options = {
         headers: {
-          Accept: '*/*',
-          Authorization: `Bearer ${accessToken}`,
+          'Accept': '*/*',
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'credentials': 'include'
         },
-        method: 'GET',
+        method: 'GET'
     };
-    const preparedUrl = param ? path += '?' + transformParam(param) : path;
+    const preparedUrl = path += '?' + transformParam(param, offset);
     try {
       const result = await fetch(preparedUrl, options);
-      const items = await result.json()?.items;
-      return items;
+      return await result.json();
+      //return items?.items ? items.items : [];
     } catch (error) {
       console.log(error)
       return null;

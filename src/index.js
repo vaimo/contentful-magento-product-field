@@ -1,35 +1,39 @@
 import './index.css';
 import { setup, renderSkuPicker } from '@contentful/ecommerce-app-base';
-import { EntityList } from '@contentful/f36-components';
-import { render } from 'react-dom';
-import { useEffect, useState } from 'react';
-import { fetchProductsByQuery } from './api/fetchProductsByQuery';
+import { useStore } from './api/useStore';
 
 const DIALOG_ID = 'root';
 const PER_PAGE = 20;
-
+const { getQueryResult } = useStore();
 setup({
   makeCTA: () => 'Select a product',
-  name: 'Contentful E-Commerce Demo App',
+  name: 'Magento Product -> Contentful Field',
   logo: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
   color: '#036FE3',
   description:
-    'This is a sample Application to demonstrate how to make a custom E-commerce application on top of Contentful.',
+    'Search and insert product SKU from Magento in Contentful',
   parameterDefinitions: [
     {
       id: 'apiKey',
-      type: 'Number',
-      name: 'API Id',
+      type: 'Symbol',
+      name: 'API Key',
       description: 'Provide the API Key here',
       required: true,
     },
     {
-      id: 'projectId',
-      type: 'Number',
-      name: 'Project Id',
-      description: 'Provide the Project Id here',
+      id: 'endpoint',
+      type: 'Symbol',
+      name: 'API Endpoint URL',
+      description: 'Provide the Project API Endpoint URL',
       required: true,
     },
+    {
+      id: 'media',
+      type: 'Symbol',
+      name: 'Media',
+      description: 'Provide the media path',
+      required: false,
+    }
   ],
   validateParameters,
   fetchProductPreviews,
@@ -38,63 +42,25 @@ setup({
   isDisabled: () => false,
 });
 
-/**function DialogLocation({ sdk }) {
-  const apiKey = sdk.parameters.installation.apiKey;
-  const projectId = sdk.parameters.installation.projectId;
-
-  const [products, setProducts] = useState();
-  useEffect(async () => {
-    const fetchProducts = async () => {
-      const response = await fetch(
-        'https://jsonplaceholder.typicode.com/posts'
-      );
-      return response.json();
-    };
-
-    fetchProducts().then(setProducts);
-  }, [apiKey, projectId]);
-
-  if (products === undefined) {
-    return <div>Please wait</div>;
-  }
-
-  return (
-    <EntityList>
-      {products.map((product) => (
-        <EntityList.Item
-          key={product.id}
-          title={product.title}
-          description="Description"
-          onClick={() => sdk.close([product.id])}
-        />
-      ))}
-    </EntityList>
-  );
-}*/
-
 async function fetchProductPreviews(skus, parameters) {
-  console.log('<--- preview endpoint --->');
-  console.log(skus);
-  const apiKey = parameters.apiKey;
-  const projectId = parameters.projectId;
-
-  const response = await fetch(
-    'https://jsonplaceholder.typicode.com/posts'
+  const result = await getQueryResult(
+    parameters.endpoint,
+    parameters.apiKey,
+    0,
+    '',
+    true
   );
-  const products = await response.json();
-  const result = products.map((product, index) => ({
-    sku: '' + product.id,
+  const products = result?.items ? result.items : [];
+  const previewProducts = products.map((product, index) => ({
+    sku: '' + product.sku,
     image: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
     id: '' + product.id,
-    name: product.title
+    name: product.name
   }));
-  return result.filter((product) => skus.includes(''+product.id));
+  return previewProducts.filter((product) => skus.includes(product.sku));
 }
 
 async function renderDialog(sdk) {
-  //render(<DialogLocation sdk={sdk} />, document.getElementById('root'));
-  console.log('<-- render dialog section --->')
-
   const container = document.getElementById(DIALOG_ID);
   if (container) {
     container.style.display = 'flex';
@@ -106,25 +72,16 @@ async function renderDialog(sdk) {
     fetchProductPreviews,
     fetchProducts: async (search, pagination) => {
       const result = await fetchSKUs(sdk.parameters.installation, search, pagination);
-      console.log('<--- fetch Products section --->');
-      console.log(result);
-      const testImg = 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png';
-      const testLink = 'https://www.diptyqueparis.com/fr_fr/p/bougie-neige-190g-edition-limitee.html';
+      const products = result?.items ? result.items : [];
 
       return {
         pagination: {
           count: PER_PAGE,
           limit: PER_PAGE,
-          total: 100,
-          offset: 1,
+          total: result?.total_count ? result.total_count : 100,
+          offset: pagination.offset,
         },
-        products: result.map((product) => ({
-          id: '' + product.id,
-          image: testImg,
-          name: product.title,
-          sku: '' + product.id,
-          externalLink: testLink
-        })),
+        products: products
       };
     },
   });
@@ -133,21 +90,16 @@ async function renderDialog(sdk) {
 }
 
 async function fetchSKUs(installationParams, search, pagination) {
-  /**const validationError = validateParameters(installationParams);
+  const validationError = validateParameters(installationParams);
   if (validationError) {
     throw new Error(validationError);
-  }*/
-  console.log('<--- Fetch SKUs --->')
-  console.log(search);
-  const response = await fetch(
-    'https://jsonplaceholder.typicode.com/posts'
-  );
-  let products = await response.json();
-  if (search) {
-    products = products.filter((product) => {
-      return product.id == search;
-    })
   }
+  const products = await getQueryResult(
+    installationParams.endpoint,
+    installationParams.apiKey,
+    pagination.offset,
+    search
+  );
 
   return products;
 }
@@ -155,23 +107,23 @@ async function fetchSKUs(installationParams, search, pagination) {
 async function openDialog(sdk, _currentValue, _config) {
   const skus = await sdk.dialogs.openCurrentApp({
     position: 'center',
-    title: 'Sample E-Commerce Demo App',
+    title: 'Diptyque Products',
     shouldCloseOnOverlayClick: true,
     shouldCloseOnEscapePress: true,
-    width: 400,
+    width: 800,
     allowHeightOverflow: true,
   });
 
   return Array.isArray(skus) ? skus : [];
 }
 
-function validateParameters({ apiKey, projectId }) {
+function validateParameters({ apiKey, endpoint }) {
   if (!apiKey) {
     return 'Please add a API Key';
   }
 
-  if (!projectId) {
-    return 'Please add a Project Id';
+  if (!endpoint) {
+    return 'Please add an endpoint';
   }
 
   return null;
