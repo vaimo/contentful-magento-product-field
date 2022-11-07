@@ -43,6 +43,10 @@ setup({
 });
 
 async function fetchProductPreviews(skus, parameters) {
+  if (!skus.length) {
+    return [];
+  }
+
   const result = await getQueryResult(
     parameters.endpoint,
     parameters.apiKey,
@@ -78,7 +82,7 @@ async function renderDialog(sdk) {
         pagination: {
           count: PER_PAGE,
           limit: PER_PAGE,
-          total: result?.total_count ? result.total_count : 100,
+          total: result?.total_count ? result.total_count : 0,
           offset: pagination.offset,
         },
         products: products

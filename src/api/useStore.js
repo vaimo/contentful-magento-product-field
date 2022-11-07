@@ -19,16 +19,17 @@ export const useStore = () => {
     }
 
     const getAllStoredItemsForPreview = () => {
-        let items = [];
+        let items = new Map();
         for (let query in store) {
             for (let offset in store[query]) {
                 if (store[query][offset]?.items) {
-                    items = items.concat(store[query][offset].items)
+                    //items = items.concat(store[query][offset].items)
+                    store[query][offset].items.forEach(item => items.set(item.sku, item));
                 }
             }
         }
         return {
-            items: items
+            items: Array.from(items.values())
         };
     }
 
