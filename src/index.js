@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { fetchProductsByQuery } from './api/fetchProductsByQuery';
 
 const DIALOG_ID = 'root';
-const PER_PAGE = 20;
+const PER_PAGE = 1;
 
 setup({
   makeCTA: () => 'Select a product',
@@ -75,6 +75,9 @@ setup({
 async function fetchProductPreviews(skus, parameters) {
   console.log('<--- preview endpoint --->');
   console.log(skus);
+  if (!skus.length) {
+    return [];
+  }
   const apiKey = parameters.apiKey;
   const projectId = parameters.projectId;
 
@@ -116,7 +119,7 @@ async function renderDialog(sdk) {
           count: PER_PAGE,
           limit: PER_PAGE,
           total: 100,
-          offset: 1,
+          offset: pagination.offset,
         },
         products: result.map((product) => ({
           id: '' + product.id,
@@ -139,8 +142,10 @@ async function fetchSKUs(installationParams, search, pagination) {
   }*/
   console.log('<--- Fetch SKUs --->')
   console.log(search);
+  let prepUrl = 'https://jsonplaceholder.typicode.com/posts';
+  prepUrl += pagination.offset ? `?userId=${pagination.offset}` : '?userId=1';
   const response = await fetch(
-    'https://jsonplaceholder.typicode.com/posts'
+    prepUrl
   );
   let products = await response.json();
   if (search) {
