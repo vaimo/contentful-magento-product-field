@@ -46,7 +46,34 @@ async function fetchProductPreviews(skus, parameters) {
   if (!skus.length) {
     return [];
   }
+  let products = await getCachedPreviews(parameters);
+  let filteredResult = products.filter((product) => skus.includes(product.sku));
+  if (products.length === 0 || filteredResult.length !== skus.length) {
+    for (const element of skus) {
+      await getQueryResult(
+        parameters.endpoint,
+        parameters.apiKey,
+        0,
+        element
+      );
+    }
+    products = await getCachedPreviews(parameters);
+  }
+  const previewProducts = mapData(products);
+  filteredResult = previewProducts.filter((product) => skus.includes(product.sku));
+  return filteredResult;
+}
 
+function mapData(products) {
+  return products.map((product, index) => ({
+    sku: '' + product.sku,
+    image: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
+    id: '' + product.id,
+    name: product.name
+  }));
+}
+
+async function getCachedPreviews(parameters) {
   const result = await getQueryResult(
     parameters.endpoint,
     parameters.apiKey,
@@ -54,14 +81,7 @@ async function fetchProductPreviews(skus, parameters) {
     '',
     true
   );
-  const products = result?.items ? result.items : [];
-  const previewProducts = products.map((product, index) => ({
-    sku: '' + product.sku,
-    image: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
-    id: '' + product.id,
-    name: product.name
-  }));
-  return previewProducts.filter((product) => skus.includes(product.sku));
+  return result?.items ? result.items : [];
 }
 
 async function renderDialog(sdk) {
