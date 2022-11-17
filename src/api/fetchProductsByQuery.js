@@ -14,7 +14,6 @@ export const fetchProductsByQuery = async function (path, param, accessToken, of
     try {
       const result = await fetch(preparedUrl, options);
       return await result.json();
-      //return items?.items ? items.items : [];
     } catch (error) {
       console.log(error)
       return null;

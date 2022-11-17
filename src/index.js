@@ -1,6 +1,7 @@
 import './index.css';
 import { setup, renderSkuPicker } from '@contentful/ecommerce-app-base';
 import { useStore } from './api/useStore';
+import logo from './magento-icon.svg';
 
 const DIALOG_ID = 'root';
 const PER_PAGE = 20;
@@ -8,7 +9,7 @@ const { getQueryResult } = useStore();
 setup({
   makeCTA: () => 'Select a product',
   name: 'Magento Product -> Contentful Field',
-  logo: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
+  logo: logo,
   color: '#036FE3',
   description:
     'Search and insert product SKU from Magento in Contentful',
@@ -59,18 +60,27 @@ async function fetchProductPreviews(skus, parameters) {
     }
     products = await getCachedPreviews(parameters);
   }
-  const previewProducts = mapData(products);
+  const previewProducts = mapData(products, parameters);
   filteredResult = previewProducts.filter((product) => skus.includes(product.sku));
   return filteredResult;
 }
 
-function mapData(products) {
-  return products.map((product, index) => ({
-    sku: '' + product.sku,
-    image: 'https://images.ctfassets.net/fo9twyrwpveg/6eVeSgMr2EsEGiGc208c6M/f6d9ff47d8d26b3b238c6272a40d3a99/contentful-logo.png',
-    id: '' + product.id,
-    name: product.name
-  }));
+function mapData(products, parameters) {
+  return products.map((product, index) => {
+    let image = '';
+    for (const galleryItem of product.media_gallery_entries) {
+      if (galleryItem.file) {
+        image = parameters.media + galleryItem.file;
+        break;
+      }
+    }
+    return {
+      sku: '' + product.sku,
+      image: image,
+      id: '' + product.id,
+      name: product.name
+    }
+  });
 }
 
 async function getCachedPreviews(parameters) {
@@ -105,7 +115,7 @@ async function renderDialog(sdk) {
           total: result?.total_count ? result.total_count : 0,
           offset: pagination.offset,
         },
-        products: products
+        products: mapData(products, sdk.parameters.installation)
       };
     },
   });
@@ -141,13 +151,17 @@ async function openDialog(sdk, _currentValue, _config) {
   return Array.isArray(skus) ? skus : [];
 }
 
-function validateParameters({ apiKey, endpoint }) {
+function validateParameters({ apiKey, endpoint, media }) {
   if (!apiKey) {
     return 'Please add a API Key';
   }
 
   if (!endpoint) {
     return 'Please add an endpoint';
+  }
+
+  if (!media) {
+    return 'Please add media path';
   }
 
   return null;
