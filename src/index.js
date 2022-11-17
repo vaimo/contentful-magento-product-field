@@ -141,7 +141,7 @@ async function fetchSKUs(installationParams, search, pagination) {
 async function openDialog(sdk, _currentValue, _config) {
   const skus = await sdk.dialogs.openCurrentApp({
     position: 'center',
-    title: 'Diptyque Products',
+    title: 'Magento Products',
     shouldCloseOnOverlayClick: true,
     shouldCloseOnEscapePress: true,
     width: 800,
