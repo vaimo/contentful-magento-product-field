@@ -68,16 +68,13 @@ async function fetchProductPreviews(skus, parameters) {
 function mapData(products, parameters) {
   return products.map((product, index) => {
     let image = '';
-    for (const galleryItem of product.media_gallery_entries) {
-      if (galleryItem.file) {
-        image = parameters.media + galleryItem.file;
-        break;
-      }
+    if (product?.small_image?.url) {
+      image = product.small_image.url;
     }
     return {
       sku: '' + product.sku,
       image: image,
-      id: '' + product.id,
+      id: '' + product.uid,
       name: product.name
     }
   });

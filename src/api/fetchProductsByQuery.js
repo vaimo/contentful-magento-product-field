@@ -8,12 +8,14 @@ export const fetchProductsByQuery = async function (path, param, accessToken, of
           'Content-Type': 'application/json',
           'credentials': 'include'
         },
-        method: 'GET'
+        method: 'POST'
     };
-    const preparedUrl = path += '?' + transformParam(param, offset);
+    const preparedUrl = path;
+    options.body = transformParam(param, offset);
     try {
       const result = await fetch(preparedUrl, options);
-      return await result.json();
+      const resultJson = await result.json();
+      return resultJson?.data?.products;
     } catch (error) {
       console.log(error)
       return null;
