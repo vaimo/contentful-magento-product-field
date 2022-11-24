@@ -27,13 +27,6 @@ setup({
       name: 'API Endpoint URL',
       description: 'Provide the Project API Endpoint URL',
       required: true,
-    },
-    {
-      id: 'media',
-      type: 'Symbol',
-      name: 'Media',
-      description: 'Provide the media path',
-      required: false,
     }
   ],
   validateParameters,
@@ -148,17 +141,13 @@ async function openDialog(sdk, _currentValue, _config) {
   return Array.isArray(skus) ? skus : [];
 }
 
-function validateParameters({ apiKey, endpoint, media }) {
+function validateParameters({ apiKey, endpoint }) {
   if (!apiKey) {
     return 'Please add a API Key';
   }
 
   if (!endpoint) {
     return 'Please add an endpoint';
-  }
-
-  if (!media) {
-    return 'Please add media path';
   }
 
   return null;
