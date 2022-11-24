@@ -27,13 +27,6 @@ setup({
       name: 'API Endpoint URL',
       description: 'Provide the Project API Endpoint URL',
       required: true,
-    },
-    {
-      id: 'media',
-      type: 'Symbol',
-      name: 'Media',
-      description: 'Provide the media path',
-      required: false,
     }
   ],
   validateParameters,
@@ -68,16 +61,13 @@ async function fetchProductPreviews(skus, parameters) {
 function mapData(products, parameters) {
   return products.map((product, index) => {
     let image = '';
-    for (const galleryItem of product.media_gallery_entries) {
-      if (galleryItem.file) {
-        image = parameters.media + galleryItem.file;
-        break;
-      }
+    if (product?.small_image?.url) {
+      image = product.small_image.url;
     }
     return {
       sku: '' + product.sku,
       image: image,
-      id: '' + product.id,
+      id: '' + product.uid,
       name: product.name
     }
   });
@@ -151,17 +141,13 @@ async function openDialog(sdk, _currentValue, _config) {
   return Array.isArray(skus) ? skus : [];
 }
 
-function validateParameters({ apiKey, endpoint, media }) {
+function validateParameters({ apiKey, endpoint }) {
   if (!apiKey) {
     return 'Please add a API Key';
   }
 
   if (!endpoint) {
     return 'Please add an endpoint';
-  }
-
-  if (!media) {
-    return 'Please add media path';
   }
 
   return null;
