@@ -40,25 +40,18 @@ async function fetchProductPreviews(skus, parameters) {
   if (!skus.length) {
     return [];
   }
-  let products = await getCachedPreviews(parameters);
-  let filteredResult = products.filter((product) => skus.includes(product.sku));
-  if (products.length === 0 || filteredResult.length !== skus.length) {
-    for (const element of skus) {
-      await getQueryResult(
-        parameters.endpoint,
-        parameters.apiKey,
-        0,
-        element
-      );
-    }
-    products = await getCachedPreviews(parameters);
-  }
-  const previewProducts = mapData(products, parameters);
-  filteredResult = previewProducts.filter((product) => skus.includes(product.sku));
+  let products = await getQueryResult(
+    parameters.endpoint,
+    parameters.apiKey,
+    0,
+    skus.join(' ')
+  )
+  const previewProducts = mapData(products?.items ? products.items : []);
+  let filteredResult = previewProducts.filter((product) => skus.includes(product.sku));
   return filteredResult;
 }
 
-function mapData(products, parameters) {
+function mapData(products) {
   return products.map((product, index) => {
     let image = '';
     if (product?.small_image?.url) {
@@ -128,8 +121,9 @@ async function fetchSKUs(installationParams, search, pagination) {
   return products;
 }
 
-async function openDialog(sdk, _currentValue, _config) {
-  const skus = await sdk.dialogs.openCurrentApp({
+async function openDialog(sdk, currentValue, config) {
+  return await sdk.dialogs.openCurrentApp({
+    parameters: { config, currentValue },
     position: 'center',
     title: 'Magento Products',
     shouldCloseOnOverlayClick: true,
@@ -137,8 +131,6 @@ async function openDialog(sdk, _currentValue, _config) {
     width: 800,
     allowHeightOverflow: true,
   });
-
-  return Array.isArray(skus) ? skus : [];
 }
 
 function validateParameters({ apiKey, endpoint }) {
