@@ -1,40 +1,12 @@
 import './index.css';
 import { setup, renderSkuPicker } from '@contentful/ecommerce-app-base';
+import { init } from '@contentful/app-sdk';
 import { useStore } from './api/useStore';
 import logo from './magento-icon.svg';
 
 const DIALOG_ID = 'root';
 const PER_PAGE = 20;
 const { getQueryResult } = useStore();
-setup({
-  makeCTA: () => 'Select a product',
-  name: 'Magento Product -> Contentful Field',
-  logo: logo,
-  color: '#036FE3',
-  description:
-    'Search and insert product SKU from Magento in Contentful',
-  parameterDefinitions: [
-    {
-      id: 'apiKey',
-      type: 'Symbol',
-      name: 'API Key',
-      description: 'Provide the API Key here',
-      required: true,
-    },
-    {
-      id: 'endpoint',
-      type: 'Symbol',
-      name: 'API Endpoint URL',
-      description: 'Provide the Project API Endpoint URL',
-      required: true,
-    }
-  ],
-  validateParameters,
-  fetchProductPreviews,
-  renderDialog,
-  openDialog,
-  isDisabled: () => false,
-});
 
 async function fetchProductPreviews(skus, parameters) {
   if (!skus.length) {
@@ -122,8 +94,8 @@ async function fetchSKUs(installationParams, search, pagination) {
 }
 
 async function openDialog(sdk, currentValue, config) {
-  return await sdk.dialogs.openCurrentApp({
-    parameters: { config, currentValue },
+  const skus = await sdk.dialogs.openCurrentApp({
+    parameters: { config, value: currentValue },
     position: 'center',
     title: 'Magento Products',
     shouldCloseOnOverlayClick: true,
@@ -131,11 +103,13 @@ async function openDialog(sdk, currentValue, config) {
     width: 800,
     allowHeightOverflow: true,
   });
+  let result = Array.isArray(skus) ? skus : [];
+  return Array.isArray(currentValue) ? [...result, ...currentValue] : result;
 }
 
 function validateParameters({ apiKey, endpoint }) {
   if (!apiKey) {
-    return 'Please add a API Key';
+    return 'Please add an API Key';
   }
 
   if (!endpoint) {
@@ -144,3 +118,38 @@ function validateParameters({ apiKey, endpoint }) {
 
   return null;
 }
+
+init ((sdk) => {
+  sdk.parameters.installation.skuTypes =
+    sdk.parameters.installation.skuTypes ?? sdk.parameters.installation.fieldsConfig;
+
+    setup({
+      makeCTA: () => 'Select a product',
+      name: 'Magento Product -> Contentful Field',
+      logo: logo,
+      color: '#036FE3',
+      description:
+        'Search and insert product SKU from Magento in Contentful',
+      parameterDefinitions: [
+        {
+          id: 'apiKey',
+          type: 'Symbol',
+          name: 'API Key',
+          description: 'Provide the API Key here',
+          required: true,
+        },
+        {
+          id: 'endpoint',
+          type: 'Symbol',
+          name: 'API Endpoint URL',
+          description: 'Provide the Project API Endpoint URL',
+          required: true,
+        }
+      ],
+      validateParameters,
+      fetchProductPreviews,
+      renderDialog,
+      openDialog,
+      isDisabled: () => false,
+    });
+});
