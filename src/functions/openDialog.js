@@ -9,5 +9,5 @@ export async function openDialog(sdk, currentValue, config) {
       allowHeightOverflow: true,
     });
     let result = Array.isArray(skus) ? skus : [];
-    return Array.isArray(currentValue) ? [...result, ...currentValue] : result;
+    return Array.isArray(currentValue) ? [...currentValue, ...result] : result;
   }
