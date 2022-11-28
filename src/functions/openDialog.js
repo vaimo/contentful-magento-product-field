@@ -1,5 +1,4 @@
 export async function openDialog(sdk, currentValue, config) {
-    const SYMBOL_TYPE_NAME = 'Symbol';
     const skus = await sdk.dialogs.openCurrentApp({
       parameters: { config, value: currentValue },
       position: 'center',
