@@ -9,7 +9,12 @@ export async function openDialog(sdk, currentValue, config) {
       width: 800,
       allowHeightOverflow: true,
     });
-    let result = Array.isArray(skus) ? skus : [];
+    return getValue(skus, currentValue, config);
+  }
+
+  function getValue(newValue, currentValue, config) {
+    const SYMBOL_TYPE_NAME = 'Symbol';
+    let result = Array.isArray(newValue) ? newValue : [];
     return (Array.isArray(currentValue) && config.fieldType !== SYMBOL_TYPE_NAME) ?
-     [...currentValue, ...result] : result;
+     [...currentValue, ...result] : [result.shift()];
   }
