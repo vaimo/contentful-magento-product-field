@@ -1,4 +1,4 @@
-export const query = `query products($search: String, $pageSize: Int, $currentPage: Int) {
+export const query: string = `query products($search: String, $pageSize: Int, $currentPage: Int) {
     products(search: $search, pageSize: $pageSize, currentPage: $currentPage) {
       total_count
       items {
@@ -13,4 +13,4 @@ export const query = `query products($search: String, $pageSize: Int, $currentPa
         }
       }
     }
-  }`;
+  }`
