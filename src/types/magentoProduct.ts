@@ -1,11 +1,13 @@
 export type MagentoProduct = {
-    uid: string,
+    id: string,
     name: string,
     sku: string,
-    small_image: {
+    media_gallery_entries: Array<{
+        id: number,
         disabled: boolean,
         label: string,
         position: number,
-        url: string
-    }
+        types: Array<string>,
+        file: string
+    }>
 }

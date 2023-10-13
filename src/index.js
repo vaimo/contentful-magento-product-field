@@ -31,6 +31,13 @@ init ((sdk) => {
         name: 'API Endpoint URL',
         description: 'Provide the Project API Endpoint URL',
         required: true,
+      },
+      {
+        id: 'mediaPath',
+        type: 'Symbol',
+        name: 'Path of the Magento media dir',
+        description: 'Provide the path of the Magento media dir',
+        required: true
       }
     ],
     validateParameters,
