@@ -15,13 +15,21 @@ async function fetchProductPreviews(skus: string[], parameters: Config): Promise
   if (!skus.length) {
     return [];
   }
-  let products = await getQueryResult(
-    parameters.endpoint,
-    parameters.apiKey,
-    0,
-    skus.join(' ')
-  )
-  const previewProducts = mapData(products?.items ? products.items : [], parameters?.mediaPath ? parameters.mediaPath : '');
+  let previewProducts : Product[] = [];
+  for (const sku of skus) {
+    let products = await getQueryResult(
+      parameters.endpoint,
+      parameters.apiKey,
+      0,
+      sku
+    );
+    previewProducts = previewProducts.concat(
+      mapData(
+        products?.items ? products.items : [],
+        parameters?.mediaPath ? parameters.mediaPath : ''
+      )
+    );
+  }
   let filteredResult = previewProducts.filter((product: Product) => skus.includes(product.sku));
   return filteredResult;
 }

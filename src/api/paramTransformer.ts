@@ -5,9 +5,6 @@ export const transformParam = (param, offset) => {
   const res = [
     ['fields', 'items[id,sku,name,media_gallery_entries]total_count'],
     ['searchCriteria[sortOrders][0][field]', 'id'],
-    ['searchCriteria[filter_groups][1][filters][0][field]', 'visibility'],
-    ['searchCriteria[filter_groups][1][filters][0][condition_type]', 'eq'],
-    ['searchCriteria[filter_groups][1][filters][0][value]', '4'],
     ['searchCriteria[pageSize]', PAGE_SIZE],
     ['searchCriteria[currentPage]', currentPage]
   ];
@@ -17,7 +14,7 @@ export const transformParam = (param, offset) => {
         `searchCriteria[filter_groups][0][filters][${index}][field]`, attr
       ]);
       res.push([
-        `searchCriteria[filter_groups][0][filters][${index}][value]`, `%25${param}%25`
+        `searchCriteria[filter_groups][0][filters][${index}][value]`, `%${param}%`
       ]);
       res.push([
         `searchCriteria[filter_groups][0][filters][${index}][condition_type]`, "like"
