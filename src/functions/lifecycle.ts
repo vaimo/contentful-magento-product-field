@@ -15,13 +15,21 @@ async function fetchProductPreviews(skus: string[], parameters: Config): Promise
   if (!skus.length) {
     return [];
   }
-  let products = await getQueryResult(
-    parameters.endpoint,
-    parameters.apiKey,
-    0,
-    skus.join(' ')
-  )
-  const previewProducts = mapData(products?.items ? products.items : []);
+  let previewProducts : Product[] = [];
+  for (const sku of skus) {
+    let products = await getQueryResult(
+      parameters.endpoint,
+      parameters.apiKey,
+      0,
+      sku
+    );
+    previewProducts = previewProducts.concat(
+      mapData(
+        products?.items ? products.items : [],
+        parameters?.mediaPath ? parameters.mediaPath : ''
+      )
+    );
+  }
   let filteredResult = previewProducts.filter((product: Product) => skus.includes(product.sku));
   return filteredResult;
 }
@@ -47,7 +55,7 @@ async function renderDialog(sdk) {
           total: result?.total_count ? result.total_count : 0,
           offset: pagination?.offset as number,
         },
-        products: mapData(products)
+        products: mapData(products, sdk.parameters.installation.mediaPath)
       };
     },
   });
@@ -55,7 +63,7 @@ async function renderDialog(sdk) {
   sdk.window.startAutoResizer();
 }
   
-async function fetchSKUs(installationParams: {endpoint: string, apiKey: string}, search: string, pagination?: Partial<Pagination>): Promise<MagentoProductsResponse | null> {
+async function fetchSKUs(installationParams: {endpoint: string, apiKey: string, mediaPath: string}, search: string, pagination?: Partial<Pagination>): Promise<MagentoProductsResponse | null> {
   const validationError = validateParameters(installationParams);
   if (validationError) {
     throw new Error(validationError);
