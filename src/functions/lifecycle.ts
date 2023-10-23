@@ -30,8 +30,10 @@ async function fetchProductPreviews(skus: string[], parameters: Config): Promise
       )
     );
   }
-  let filteredResult = previewProducts.filter((product: Product) => skus.includes(product.sku));
-  return filteredResult;
+  const filteredResult = previewProducts.filter((product: Product) => skus.includes(product.sku));
+  //filter unique objects by sku key
+  return [...new Map(filteredResult.map(item =>
+    [item['sku'], item])).values()];
 }
 
 async function renderDialog(sdk) {
