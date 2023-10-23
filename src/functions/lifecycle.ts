@@ -15,9 +15,8 @@ async function fetchProductPreviews(skus: string[], parameters: Config): Promise
   if (!skus.length) {
     return [];
   }
-  const uniqueSkus = skus.filter((value, index, self) => self.indexOf(value) === index); 
   let previewProducts : Product[] = [];
-  for (const sku of uniqueSkus) {
+  for (const sku of skus) {
     let products = await getQueryResult(
       parameters.endpoint,
       parameters.apiKey,
@@ -31,8 +30,10 @@ async function fetchProductPreviews(skus: string[], parameters: Config): Promise
       )
     );
   }
-  let filteredResult = previewProducts.filter((product: Product) => uniqueSkus.includes(product.sku));
-  return filteredResult;
+  const filteredResult = previewProducts.filter((product: Product) => skus.includes(product.sku));
+  //filter unique objects by sku key
+  return [...new Map(filteredResult.map(item =>
+    [item['sku'], item])).values()];
 }
 
 async function renderDialog(sdk) {
